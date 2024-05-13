@@ -1,0 +1,84 @@
+/**
+    path -> api/v1/modulo
+
+    CRUD Todo list
+    C -> Create (Crear) POST Nos envian:Payload -No envian: Id por URL
+    R -> Read (Leer/Obtener) GET -> No envian: payload ni Id por Url
+    U -> Update (Actualizar) PUT -> Nos envian: payload (actualizacion) -> Id por URL
+    D -> Delete (Eliminar) Delete -> No envian: peyload, Id por URL
+
+    Filtro
+    Obtener las tareas segun el filtro
+    Get -> api/v1/todo/filter/{status}
+**/
+
+var builder = WebApplication.CreateBuilder(args);
+var app = builder.Build();
+
+List<Todo> Bd = new List<Todo>();
+
+//Crear
+app.MapPost("/api/v1/todo", (Todo todo) => {
+    Bd.Add(todo);
+    return Results.Ok("Todo creado correctamente");
+});
+
+//Obtener TODOS
+app.MapGet("/api/v1/todo", () => {
+    return Results.Ok(Bd);
+});
+
+//Actualizar Uno
+app.MapPut("/api/v1/todo/{id:int}", (int id, Todo todo) => {
+    foreach(Todo todo_bd in Bd){
+        if (todo_bd.Id == id){
+            todo_bd.Name = todo.Name;
+            todo_bd.IsCompleted = todo.IsCompleted;
+            break;
+        }
+    }
+
+    return Results.Ok("Todo actualizado");
+});
+
+//Eliminar Uno
+app.MapDelete("/api/v1/todo/{id:int}", (int id) => {
+    foreach(Todo todo_bd in Bd){
+        if (todo_bd.Id == id){
+           Bd.Remove(todo_bd);
+           break;
+        }
+    }
+    return Results.Ok($"Todo eliminado correctamente {id}");
+});
+
+//Filtro
+
+app.MapGet("/api/v1/todo/filter/{status:bool}", (bool status) => {
+    List<Todo> filter = new List<Todo>();
+
+    foreach(Todo todo in Bd){
+        if(todo.IsCompleted == status){
+            filter.Add(todo);
+        }
+    }
+
+    return Results.Ok(filter);
+});
+app.Run();
+
+class Todo 
+{
+    public int Id {get; set;}
+    public string Name {get; set;}
+    public bool IsCompleted {get; set;}
+}
+
+/**
+
+{
+	"Id": 1,
+  	"Name": "Tarea 1",
+  	"IsCompleted": false
+}
+*/
